@@ -1,0 +1,777 @@
+// Green Pages - Prisma Schema
+// PostgreSQL with PostGIS support
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis, pg_trgm]
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  ADMIN
+  AGENT
+  USER
+}
+
+enum AdPlacement {
+  SEARCH_SPONSORED
+  HOME_HERO
+  CATEGORY_BANNER
+  PROFILE_SIDEBAR
+  MAP_PIN_HIGHLIGHT
+  SEARCH_AUTOCOMPLETE
+}
+
+enum CollectionType {
+  SUBSCRIPTION
+  AD_PAYMENT
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RewardAction {
+  SUBMIT_REVIEW
+  REPORT_WRONG_PHONE
+  REPORT_CLOSED_BUSINESS
+  FIRST_REVIEW_OF_DAY
+  VERIFIED_REPORT
+}
+
+enum ReportType {
+  WRONG_PHONE
+  WRONG_LOCATION
+  CLOSED_BUSINESS
+  WRONG_INFO
+  SPAM
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  REJECTED
+}
+
+enum NotificationType {
+  SUBSCRIPTION_EXPIRY
+  REVIEW_REPLY
+  REPORT_RESOLVED
+  POINTS_EARNED
+  SYSTEM
+}
+
+enum AppTarget {
+  WEB_DIRECTORY
+  WEB_ADMIN
+  MOBILE_AGENT
+  MOBILE_USER
+  ALL
+}
+
+enum BlockType {
+  HEADER
+  FOOTER
+  HOME_HERO
+}
+
+// ============================================
+// USER & AUTH
+// ============================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  phone        String?  @unique
+  passwordHash String
+  role         UserRole @default(USER)
+  locale       String   @default("ar")
+  points       Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  agent             Agent?
+  reviews           Review[]
+  pointTransactions PointTransaction[]
+  reports           DataReport[]
+  notifications     Notification[]
+  ownedBusinesses   Business[]         @relation("BusinessOwner")
+  businessStaff     BusinessOwner[]    @relation("BusinessStaff")
+
+  @@map("users")
+}
+
+model Agent {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  employeeCode String   @unique
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  businesses  Business[]
+  debts       AgentDebt[]
+  settlements Settlement[]
+
+  @@map("agents")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+
+// ============================================
+// GEOGRAPHIC
+// ============================================
+
+model Governorate {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  lat      Float?
+  lng      Float?
+  isActive Boolean @default(true)
+
+  translations GovernorateTranslation[]
+  cities       City[]
+
+  @@map("governorates")
+}
+
+model GovernorateTranslation {
+  id            String      @id @default(cuid())
+  governorateId String
+  governorate   Governorate @relation(fields: [governorateId], references: [id], onDelete: Cascade)
+  locale        String
+  name          String
+
+  @@unique([governorateId, locale])
+  @@map("governorate_translations")
+}
+
+model City {
+  id            String      @id @default(cuid())
+  governorateId String
+  governorate   Governorate @relation(fields: [governorateId], references: [id], onDelete: Cascade)
+  slug          String      @unique
+  lat           Float?
+  lng           Float?
+  isActive      Boolean     @default(true)
+
+  translations CityTranslation[]
+  districts    District[]
+
+  @@index([governorateId])
+  @@map("cities")
+}
+
+model CityTranslation {
+  id     String @id @default(cuid())
+  cityId String
+  city   City   @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  locale String
+  name   String
+
+  @@unique([cityId, locale])
+  @@map("city_translations")
+}
+
+model District {
+  id       String  @id @default(cuid())
+  cityId   String
+  city     City    @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  slug     String  @unique
+  lat      Float?
+  lng      Float?
+  isActive Boolean @default(true)
+
+  translations DistrictTranslation[]
+  businesses   Business[]
+
+  @@index([cityId])
+  @@map("districts")
+}
+
+model DistrictTranslation {
+  id         String   @id @default(cuid())
+  districtId String
+  district   District @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  locale     String
+  name       String
+
+  @@unique([districtId, locale])
+  @@map("district_translations")
+}
+
+// ============================================
+// DIRECTORY
+// ============================================
+
+model Category {
+  id        String     @id @default(cuid())
+  parentId  String?
+  parent    Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryHierarchy")
+  slug      String     @unique
+  icon      String?
+  sortOrder Int        @default(0)
+  isActive  Boolean    @default(true)
+
+  translations CategoryTranslation[]
+  businesses   Business[]
+  ads          Ad[]
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+model CategoryTranslation {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  locale      String
+  name        String
+  description String?
+
+  @@unique([categoryId, locale])
+  @@map("category_translations")
+}
+
+
+model Business {
+  id         String    @id @default(cuid())
+  slug       String    @unique
+  categoryId String
+  category   Category  @relation(fields: [categoryId], references: [id])
+  districtId String
+  district   District  @relation(fields: [districtId], references: [id])
+  agentId    String?
+  agent      Agent?    @relation(fields: [agentId], references: [id])
+  ownerId    String?
+  owner      User?     @relation("BusinessOwner", fields: [ownerId], references: [id])
+
+  lat      Float
+  lng      Float
+  // PostGIS geography column - managed via raw SQL
+  // location Unsupported("geography(Point, 4326)")
+
+  // Normalized phone for search (digits only)
+  phone           String?
+  phone2          String?
+  phoneNormalized String?  // For efficient phone search
+  whatsapp        String?
+  email           String?
+  website         String?
+
+  workingHours Json? // { "mon": { "open": "09:00", "close": "17:00" }, ... }
+
+  avgRating   Float   @default(0)
+  reviewCount Int     @default(0)
+  viewCount   Int     @default(0)
+
+  isFeatured Boolean   @default(false)
+  isVerified Boolean   @default(false)
+  isActive   Boolean   @default(true)
+  deletedAt  DateTime?
+
+  metaTitle       String?
+  metaDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations    BusinessTranslation[]
+  images          BusinessImage[]
+  reviews         Review[]
+  subscriptions   Subscription[]
+  adCampaigns     AdCampaign[]
+  reports         DataReport[]
+  debts           AgentDebt[]
+  additionalOwners BusinessOwner[]  // Many-to-many for multiple owners/staff
+
+  @@index([categoryId])
+  @@index([districtId])
+  @@index([slug])
+  @@index([isActive, deletedAt])
+  @@index([phoneNormalized])  // Index for phone search
+  @@map("businesses")
+}
+
+// Many-to-many relationship for business owners/staff
+// Allows multiple users to manage a business with different roles
+model BusinessOwner {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation("BusinessStaff", fields: [userId], references: [id], onDelete: Cascade)
+  role       BusinessOwnerRole @default(OWNER)
+  
+  createdAt  DateTime @default(now())
+  
+  @@unique([businessId, userId])
+  @@index([userId])
+  @@map("business_owners")
+}
+
+enum BusinessOwnerRole {
+  OWNER    // Full access
+  MANAGER  // Can edit but not delete
+  EDITOR   // Can edit content only
+}
+
+model BusinessTranslation {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  locale      String
+  name        String
+  description String?
+  address     String?
+
+  @@unique([businessId, locale])
+  @@index([name])
+  @@map("business_translations")
+}
+
+model BusinessImage {
+  id              String   @id @default(cuid())
+  businessId      String
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  storageObjectId String?
+  storageObject   StorageObject? @relation(fields: [storageObjectId], references: [id])
+
+  // Legacy fields (kept for backward compatibility, will be deprecated)
+  storageProvider String
+  bucket          String
+  objectKey       String   @unique // Unique constraint for data integrity
+  mimeType        String
+  size            Int
+  checksum        String
+
+  sortOrder Int     @default(0)
+  isPrimary Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([businessId])
+  @@index([storageObjectId])
+  // Partial unique index: only one isPrimary=true per business
+  // This will be enforced via application logic + database trigger
+  @@map("business_images")
+}
+
+
+// ============================================
+// PLANS & SUBSCRIPTIONS
+// ============================================
+
+model Plan {
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  price        Decimal @db.Decimal(10, 2)
+  durationDays Int
+  isDefault    Boolean @default(false)
+  isActive     Boolean @default(true)
+  sortOrder    Int     @default(0)
+
+  translations  PlanTranslation[]
+  features      PlanFeature[]
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model PlanTranslation {
+  id          String @id @default(cuid())
+  planId      String
+  plan        Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  locale      String
+  name        String
+  description String?
+
+  @@unique([planId, locale])
+  @@map("plan_translations")
+}
+
+model PlanFeature {
+  id           String @id @default(cuid())
+  planId       String
+  plan         Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+  featureKey   String // e.g., 'max_images', 'show_whatsapp', 'search_priority'
+  featureValue String // stored as string, parsed based on key type
+
+  @@unique([planId, featureKey])
+  @@map("plan_features")
+}
+
+model Subscription {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  planId     String
+  plan       Plan     @relation(fields: [planId], references: [id])
+
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([businessId])
+  @@index([endDate])
+  @@index([isActive, endDate])
+  @@map("subscriptions")
+}
+
+// ============================================
+// ADVERTISING
+// ============================================
+
+model AdCampaign {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  budget    Decimal  @db.Decimal(10, 2)
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ads Ad[]
+
+  @@index([businessId])
+  @@index([isActive, startDate, endDate])
+  @@map("ad_campaigns")
+}
+
+model Ad {
+  id         String      @id @default(cuid())
+  campaignId String
+  campaign   AdCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  placement  AdPlacement
+
+  // Targeting
+  governorateId String?
+  cityId        String?
+  districtId    String?
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
+
+  // Scheduling
+  activeHoursStart Int? // 0-23
+  activeHoursEnd   Int? // 0-23
+
+  impressions Int     @default(0)
+  clicks      Int     @default(0)
+  isActive    Boolean @default(true)
+
+  @@index([placement])
+  @@index([governorateId])
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("ads")
+}
+
+
+// ============================================
+// FINANCE
+// ============================================
+
+model AgentDebt {
+  id         String         @id @default(cuid())
+  agentId    String
+  agent      Agent          @relation(fields: [agentId], references: [id])
+  businessId String
+  business   Business       @relation(fields: [businessId], references: [id])
+  amount     Decimal        @db.Decimal(10, 2)
+  type       CollectionType
+
+  createdAt DateTime @default(now())
+
+  @@index([agentId])
+  @@index([businessId])
+  @@map("agent_debts")
+}
+
+model Settlement {
+  id           String  @id @default(cuid())
+  agentId      String
+  agent        Agent   @relation(fields: [agentId], references: [id])
+  accountantId String
+  amount       Decimal @db.Decimal(10, 2)
+  notes        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([agentId])
+  @@map("settlements")
+}
+
+// ============================================
+// REVIEWS
+// ============================================
+
+model Review {
+  id         String       @id @default(cuid())
+  businessId String
+  business   Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User         @relation(fields: [userId], references: [id])
+  rating     Int // 1-5
+  text       String?
+  status     ReviewStatus @default(PENDING)
+
+  moderatedBy String?
+  moderatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([userId])
+  @@index([status])
+  @@map("reviews")
+}
+
+// ============================================
+// REWARDS
+// ============================================
+
+model PointTransaction {
+  id       String       @id @default(cuid())
+  userId   String
+  user     User         @relation(fields: [userId], references: [id])
+  action   RewardAction
+  points   Int
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("point_transactions")
+}
+
+model RewardConfig {
+  id          String       @id @default(cuid())
+  action      RewardAction @unique
+  points      Int
+  description String?
+  isActive    Boolean      @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@map("reward_configs")
+}
+
+// ============================================
+// REPORTS
+// ============================================
+
+model DataReport {
+  id          String       @id @default(cuid())
+  businessId  String
+  business    Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  reporterId  String
+  reporter    User         @relation(fields: [reporterId], references: [id])
+  type        ReportType
+  description String?
+  status      ReportStatus @default(PENDING)
+
+  resolvedBy String?
+  resolvedAt DateTime?
+  resolution String?
+
+  createdAt DateTime @default(now())
+
+  @@index([businessId])
+  @@index([status])
+  @@map("data_reports")
+}
+
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+model Notification {
+  id     String           @id @default(cuid())
+  userId String
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type   NotificationType
+  title  String
+  body   String
+  data   Json?
+
+  isRead Boolean   @default(false)
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+
+model FeatureToggle {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  value       Boolean   @default(false)
+  description String?
+  target      AppTarget
+
+  updatedAt DateTime @updatedAt
+
+  @@map("feature_toggles")
+}
+
+model Block {
+  id            String    @id @default(cuid())
+  type          BlockType
+  target        AppTarget
+  schemaVersion Int       @default(1)
+  settingsJson  Json
+  isEnabled     Boolean   @default(true)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, target])
+  @@map("blocks")
+}
+
+// ============================================
+// I18N
+// ============================================
+
+model Translation {
+  id        String @id @default(cuid())
+  namespace String // e.g., 'common', 'business', 'category'
+  key       String
+  locale    String
+  value     String
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([namespace, key, locale])
+  @@index([namespace, locale])
+  @@map("translations")
+}
+
+// ============================================
+// GEOGRAPHIC STATISTICS
+// ============================================
+
+model GeoStats {
+  id                    String   @id
+  entityType            String   @map("entity_type") // 'governorate', 'city', 'district'
+  entityId              String   @map("entity_id")
+  companyCount          Int      @default(0) @map("company_count")
+  activeCompanyCount    Int      @default(0) @map("active_company_count")
+  featuredCompanyCount  Int      @default(0) @map("featured_company_count")
+  verifiedCompanyCount  Int      @default(0) @map("verified_company_count")
+  avgRating             Decimal  @default(0) @map("avg_rating") @db.Decimal(3, 2)
+  totalReviews          Int      @default(0) @map("total_reviews")
+  lastUpdated           DateTime @default(now()) @map("last_updated")
+
+  @@unique([entityType, entityId])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([companyCount(sort: Desc)])
+  @@index([activeCompanyCount(sort: Desc)])
+  @@map("geo_stats")
+}
+
+// ============================================
+// REFRESH TOKENS
+// ============================================
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ============================================
+// STORAGE
+// ============================================
+
+enum StorageProvider {
+  LOCAL
+  R2
+  S3
+  MINIO
+  BUNNY
+}
+
+model StorageObject {
+  id              String          @id @default(cuid())
+  provider        StorageProvider
+  bucket          String
+  objectKey       String          @unique
+  originalName    String?
+  mimeType        String
+  size            Int
+  checksum        String
+  
+  // Soft delete support
+  isDeleted       Boolean         @default(false)
+  deletedAt       DateTime?
+  
+  // Migration tracking
+  migratedFrom    String?         // Original provider if migrated
+  migratedAt      DateTime?
+  
+  // Metadata
+  metadata        Json?           // Additional custom metadata
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  businessImages  BusinessImage[]
+
+  @@index([provider])
+  @@index([bucket])
+  @@index([isDeleted])
+  @@index([createdAt])
+  @@map("storage_objects")
+}

@@ -1,0 +1,30 @@
+{
+  "name": "green-pages",
+  "version": "1.0.0",
+  "description": "Green Pages - Business Directory System (الصفحات الخضراء)",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "api:dev": "npm run dev -w @green-pages/api",
+    "api:build": "npm run build -w @green-pages/api",
+    "api:start": "npm run start:prod -w @green-pages/api",
+    "api:test": "npm run test -w @green-pages/api",
+    "web-admin:dev": "npm run dev -w @green-pages/web-admin",
+    "web-admin:build": "npm run build -w @green-pages/web-admin",
+    "web-directory:dev": "npm run dev -w @green-pages/web-directory",
+    "web-directory:build": "npm run build -w @green-pages/web-directory",
+    "prisma:generate": "npm run generate -w @green-pages/prisma",
+    "prisma:migrate": "npm run migrate:dev -w @green-pages/prisma",
+    "prisma:studio": "npm run studio -w @green-pages/prisma",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "",
+  "license": "UNLICENSED"
+}
