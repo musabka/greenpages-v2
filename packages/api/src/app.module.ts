@@ -11,6 +11,15 @@ import { GeoModule } from './modules/geo/geo.module';
 import { CategoryModule } from './modules/category/category.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { DirectoryModule } from './modules/directory/directory.module';
+import { PlansModule } from './modules/plans/plans.module';
+import { AdsModule } from './modules/ads/ads.module';
+import { FinanceModule } from './modules/finance/finance.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { RewardsModule } from './modules/rewards/rewards.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { SettingsModule } from './modules/settings/settings.module';
+import { I18nModule } from './modules/i18n/i18n.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
 
@@ -40,6 +49,15 @@ import { RolesGuard } from './modules/auth/guards/roles.guard';
     CategoryModule,
     StorageModule,
     DirectoryModule,
+    PlansModule,
+    AdsModule,
+    FinanceModule,
+    ReviewsModule,
+    RewardsModule,
+    ReportsModule,
+    NotificationsModule,
+    SettingsModule,
+    I18nModule,
   ],
   providers: [
     {

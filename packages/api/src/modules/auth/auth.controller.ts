@@ -41,4 +41,12 @@ export class AuthController {
   async logout(@CurrentUser() user: UserPayload): Promise<void> {
     await this.authService.logout(user.id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me')
+  @HttpCode(HttpStatus.OK)
+  @SkipThrottle()
+  async getCurrentUser(@CurrentUser() user: UserPayload): Promise<UserPayload> {
+    return user;
+  }
 }

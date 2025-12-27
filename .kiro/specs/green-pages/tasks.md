@@ -169,14 +169,14 @@
     - **Property 10: Search Result Correctness**
     - **Validates: Requirements 5.1, 5.2, 5.3, 5.4**
 
-- [ ] 9. Plans Module
-  - [ ] 9.1 Implement Plan CRUD with features
+- [x] 9. Plans Module
+  - [x] 9.1 Implement Plan CRUD with features
     - Create plans with name, price, duration, features
     - Support PlanFeatures (image limit, WhatsApp, working hours, etc.)
     - Configure default plan
     - _Requirements: 6.1, 6.2, 6.6_
 
-  - [ ] 9.2 Implement Subscription service
+  - [x] 9.2 Implement Subscription service
     - Create subscription with start/end dates
     - Track expiration and renewal status
     - Auto-assign default plan on expiration (cron job)
@@ -195,18 +195,18 @@
     - **Property 13: Plan Feature Visibility Control**
     - **Validates: Requirements 6.7**
 
-- [ ] 10. Checkpoint - Business & Plans Complete
+- [x] 10. Checkpoint - Business & Plans Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Advertising Module
-  - [ ] 11.1 Implement Ad Campaign and Ad entities
+- [x] 11. Advertising Module
+  - [x] 11.1 Implement Ad Campaign and Ad entities
     - Create campaigns with budget, duration, targeting
     - Support all ad placements (search, home, category, profile, map, autocomplete)
     - Geographic and category targeting
     - Ad scheduling (active hours)
     - _Requirements: 7.1, 7.2, 7.3, 7.6, 18.1, 18.2, 18.3, 18.6_
 
-  - [ ] 11.2 Implement Ad serving and tracking
+  - [x] 11.2 Implement Ad serving and tracking
     - Get ads for placement with context matching
     - Record impressions and clicks
     - Ad rotation for same placement
@@ -216,12 +216,12 @@
     - **Property 14: Ad Targeting Accuracy**
     - **Validates: Requirements 7.3**
 
-  - [ ] 11.4 Implement Ad performance reporting
+  - [x] 11.4 Implement Ad performance reporting
     - Impressions, clicks, CTR reports
     - _Requirements: 18.5_
 
-- [ ] 12. Finance Module
-  - [ ] 12.1 Implement Agent Debt tracking
+- [-] 12. Finance Module
+  - [x] 12.1 Implement Agent Debt tracking
     - Record cash collections as debt
     - Track by agent and business
     - Complete audit trail
@@ -231,7 +231,7 @@
     - **Property 15: Payment Creates Debt Record**
     - **Validates: Requirements 8.3, 9.1**
 
-  - [ ] 12.3 Implement Settlement processing
+  - [x] 12.3 Implement Settlement processing
     - Process settlements to reduce debt
     - Record treasury entries
     - Prevent negative debt
@@ -245,17 +245,17 @@
     - **Property 17: Non-Negative Debt Invariant**
     - **Validates: Requirements 9.5**
 
-  - [ ] 12.6 Implement debt reports and history
+  - [x] 12.6 Implement debt reports and history
     - Agent debt summary
     - Settlement history
     - Ledger entries
     - _Requirements: 9.4_
 
-- [ ] 13. Checkpoint - Ads & Finance Complete
+- [x] 13. Checkpoint - Ads & Finance Complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Reviews Module
-  - [ ] 14.1 Implement Review CRUD
+- [x] 14. Reviews Module
+  - [x] 14.1 Implement Review CRUD
     - Create review with rating (1-5), text, user, business
     - Calculate and cache average rating
     - Pagination and sorting (newest, highest, lowest)
@@ -265,12 +265,12 @@
     - **Property 21: Review Average Calculation**
     - **Validates: Requirements 16.2**
 
-  - [ ] 14.3 Implement review moderation
+  - [x] 14.3 Implement review moderation
     - Approve, reject, flag reviews
     - Hide flagged reviews pending admin review
     - _Requirements: 16.4, 16.5_
 
-  - [ ] 14.4 Implement duplicate review prevention
+  - [x] 14.4 Implement duplicate review prevention
     - Prevent same user reviewing same business within 30 days
     - _Requirements: 16.6_
 
@@ -278,8 +278,8 @@
     - **Property 22: Duplicate Review Prevention**
     - **Validates: Requirements 16.6**
 
-- [ ] 15. Rewards Module
-  - [ ] 15.1 Implement Points system
+- [-] 15. Rewards Module
+  - [x] 15.1 Implement Points system
     - Award points for actions (review, report, first review of day)
     - Store balance and transaction history
     - User level/badge calculation
@@ -289,28 +289,28 @@
     - **Property 23: Points Award Correctness**
     - **Validates: Requirements 17.1**
 
-  - [ ] 15.3 Implement configurable point values
+  - [x] 15.3 Implement configurable point values
     - Admin can configure points per action
     - Award points after admin verification for reports
     - _Requirements: 17.4, 17.5_
 
-- [ ] 16. Data Reports Module
-  - [ ] 16.1 Implement Data Report system
+- [x] 16. Data Reports Module
+  - [x] 16.1 Implement Data Report system
     - Create reports (wrong phone, closed, wrong location)
     - Pending reports queue with filtering
     - Resolution workflow with business update
     - Track resolution statistics
     - _Requirements: 21.1, 21.2, 21.3, 21.4, 21.5_
 
-- [ ] 17. Notifications Module
-  - [ ] 17.1 Implement Notification system
+- [x] 17. Notifications Module
+  - [x] 17.1 Implement Notification system
     - Support types: subscription expiry, review reply, report resolved, points earned
     - Store with read status
     - Broadcast to user segments
     - _Requirements: 22.1, 22.2, 22.5_
 
-- [ ] 18. Settings Module
-  - [ ] 18.1 Implement Feature Toggles
+- [x] 18. Settings Module
+  - [x] 18.1 Implement Feature Toggles
     - Store toggles with key, value, description, target app
     - Immediate effect without restart
     - Toggles for: WhatsApp, working hours, visitor submission, ad types, blocks
@@ -320,14 +320,14 @@
     - **Property 18: Feature Toggle Immediate Effect**
     - **Validates: Requirements 10.2**
 
-  - [ ] 18.3 Implement Block system
+  - [x] 18.3 Implement Block system
     - Store blocks with type, schema, settings, target
     - Settings editor support
     - Block types: header, footer, home hero
     - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-- [ ] 19. i18n Module
-  - [ ] 19.1 Implement Translation service
+- [x] 19. i18n Module
+  - [x] 19.1 Implement Translation service
     - Store translatable content with keys
     - Support Arabic (primary) and English
     - Fallback to Arabic when translation missing
@@ -338,7 +338,7 @@
     - **Property 20: Translation Fallback**
     - **Validates: Requirements 14.6**
 
-  - [ ] 19.3 Implement translation management interface support
+  - [x] 19.3 Implement translation management interface support
     - API endpoints for managing translations
     - User language preference storage
     - _Requirements: 14.4, 14.7_
@@ -347,41 +347,41 @@
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 21. Web Admin (Next.js)
-  - [ ] 21.1 Setup Next.js admin project with authentication
+  - [x] 21.1 Setup Next.js admin project with authentication
     - Search for latest stable Next.js version and install
     - Initialize with App Router
     - Implement admin login with JWT
     - Setup latest stable Tailwind CSS
     - _Requirements: 1.1, 1.2_
 
-  - [ ] 21.2 Implement Geographic management pages
+  - [x] 21.2 Implement Geographic management pages
     - CRUD for Governorates, Cities, Districts
     - Hierarchy visualization
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 21.3 Implement Category management pages
+  - [x] 21.3 Implement Category management pages
     - Tree view for categories
     - CRUD with parent selection
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ] 21.4 Implement Business management pages
+  - [x] 21.4 Implement Business management pages
     - List with search and filters
     - Create/Edit forms
     - Image upload
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-  - [ ] 21.5 Implement Plans management pages
+  - [x] 21.5 Implement Plans management pages
     - Plan CRUD with features configuration
     - Default plan settings
     - _Requirements: 6.1, 6.2, 6.6_
 
-  - [ ] 21.6 Implement Ads management pages
+  - [x] 21.6 Implement Ads management pages
     - Campaign creation and management
     - Performance reports
     - Placement configuration
     - _Requirements: 7.1, 7.2, 7.5, 18.2, 18.5, 18.7_
 
-  - [ ] 21.7 Implement Finance pages
+  - [x] 21.7 Implement Finance pages
     - Agent debt reports
     - Settlement processing
     - Audit trail view
