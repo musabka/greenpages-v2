@@ -263,6 +263,7 @@ export class ReviewService {
 
   /**
    * Moderate a review (approve, reject, or flag)
+   * Includes protection against double-moderation
    */
   async moderate(
     id: string,
@@ -277,7 +278,12 @@ export class ReviewService {
       throw new NotFoundException('Review not found');
     }
 
-    const previousStatus = review.status;
+    // Check if already moderated (protection against double-moderation)
+    if (review.status !== ReviewStatus.PENDING) {
+      throw new BadRequestException(
+        `Review already moderated with status: ${review.status}`,
+      );
+    }
 
     const updated = await this.prisma.review.update({
       where: { id },
@@ -296,12 +302,8 @@ export class ReviewService {
       },
     });
 
-    // Update business rating if status changed to/from APPROVED
-    if (
-      previousStatus !== data.status &&
-      (previousStatus === ReviewStatus.APPROVED ||
-        data.status === ReviewStatus.APPROVED)
-    ) {
+    // Update business rating if status changed to APPROVED
+    if (data.status === ReviewStatus.APPROVED) {
       await this.updateBusinessRating(review.businessId);
     }
 

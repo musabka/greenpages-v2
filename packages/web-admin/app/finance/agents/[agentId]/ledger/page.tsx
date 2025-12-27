@@ -58,7 +58,7 @@ export default function AgentLedgerPage() {
       setLoading(true);
 
       // Load all agents to find the specific one
-      const agentsResponse = await apiClient.get('/finance/agents');
+      const agentsResponse = await apiClient.get('/finance/agents') as any;
       const allAgents = agentsResponse.data as any[];
       const foundAgent = allAgents.find((a: any) => a.id === agentId);
       
@@ -84,7 +84,7 @@ export default function AgentLedgerPage() {
 
       const response = await apiClient.get(
         `/finance/agents/${agentId}/ledger?${params.toString()}`
-      );
+      ) as any;
       setLedgerEntries(response.data as LedgerEntry[]);
     } catch (error) {
       console.error('Failed to load ledger:', error);

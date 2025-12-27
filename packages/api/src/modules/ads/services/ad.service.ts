@@ -422,7 +422,7 @@ export class AdService {
   }
 
   private mapAdToResponse(ad: any): AdResponseDto {
-    return {
+    const response: any = {
       id: ad.id,
       campaignId: ad.campaignId,
       placement: ad.placement,
@@ -436,5 +436,12 @@ export class AdService {
       clicks: ad.clicks,
       isActive: ad.isActive,
     };
+
+    // Include business data if available (for public ad serving)
+    if (ad.campaign?.business) {
+      response.business = ad.campaign.business;
+    }
+
+    return response;
   }
 }

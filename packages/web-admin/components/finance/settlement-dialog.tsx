@@ -60,7 +60,7 @@ export function SettlementDialog({
       setLoading(true);
 
       // Get current user ID (accountant)
-      const userResponse = await apiClient.post('/auth/me');
+      const userResponse = await apiClient.post('/auth/me') as any;
       const accountantId = userResponse.data.id;
 
       await apiClient.post('/finance/settlements', {

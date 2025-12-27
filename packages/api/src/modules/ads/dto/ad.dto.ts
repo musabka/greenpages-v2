@@ -186,6 +186,7 @@ export interface AdResponseDto {
   impressions: number;
   clicks: number;
   isActive: boolean;
+  business?: any; // Business data included for public ad serving
 }
 
 export interface AdCampaignResponseDto {

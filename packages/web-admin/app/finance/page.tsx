@@ -44,7 +44,7 @@ export default function FinancePage() {
     try {
       setLoading(true);
       // Fetch all agents with debt summaries
-      const response = await apiClient.get('/finance/agents');
+      const response = await apiClient.get('/finance/agents') as any;
       setAgents(response.data as AgentWithDebt[]);
     } catch (error) {
       console.error('Failed to load agents:', error);
